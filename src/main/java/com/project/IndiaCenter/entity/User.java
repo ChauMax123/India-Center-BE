@@ -28,7 +28,6 @@ public class User {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
     private LocalDateTime createdAt;
