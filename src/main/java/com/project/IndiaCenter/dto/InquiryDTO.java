@@ -11,14 +11,14 @@ public class InquiryDTO {
 
 
     @NotNull(message = "User name cannot be null")
-    private String fromName;
+    private String from_name;
 
     @NotNull(message = "Message cannot be null")
     @Size(min = 10, max = 500, message = "Message must be between 10 and 500 characters")
     private String message;
 
     private String phone;
-    private String email;
+    private String from_email;
     private String subject;
 
 }
