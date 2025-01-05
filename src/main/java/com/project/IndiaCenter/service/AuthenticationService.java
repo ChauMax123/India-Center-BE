@@ -1,56 +1,70 @@
 package com.project.IndiaCenter.service;
 
 import com.project.IndiaCenter.dto.AuthResponse;
-import com.project.IndiaCenter.dto.UserLoginRequest;
-import com.project.IndiaCenter.dto.UserSignupRequest;
+import com.project.IndiaCenter.dto.SignInRequest;
+import com.project.IndiaCenter.dto.SignUpRequest;
 import com.project.IndiaCenter.entity.Role;
 import com.project.IndiaCenter.entity.User;
 import com.project.IndiaCenter.repository.UserRepository;
+import com.project.IndiaCenter.utils.JwtService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 
 @Service
 public class AuthenticationService {
-
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    public AuthenticationService(UserRepository userRepository, JwtService jwtService) {
+    public AuthenticationService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
 
-    public String signUp(UserSignupRequest request) {
-
+    public ResponseEntity<String> signUp(SignUpRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("User already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("User with this email already exists");
         }
+
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Password cannot be null or empty");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.valueOf(request.getRole()));
+        user.setPassword(encodedPassword);
+        user.setRole(Role.valueOf("USER"));
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
 
         userRepository.save(user);
-        return "User registered successfully!";
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("User registered successfully");
     }
 
-    public AuthResponse signIn(UserLoginRequest request) {
+    public AuthResponse signIn(SignInRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new RuntimeException("Invalid email or USER"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new RuntimeException("Invalid PASSWORD");
         }
 
         String token = jwtService.generateToken(user.getEmail());
         AuthResponse response = new AuthResponse();
         response.setToken(token);
-        response.setRole(user.getRole().getName());
+        response.setRole(String.valueOf(user.getRole()));
 
         return response;
     }
