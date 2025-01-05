@@ -9,14 +9,16 @@ import lombok.Setter;
 @Setter
 public class InquiryDTO {
 
-    @NotNull(message = "Facility ID cannot be null")
-    private Long facilityId;
 
     @NotNull(message = "User name cannot be null")
-    private String userName;
+    private String from_name;
 
     @NotNull(message = "Message cannot be null")
     @Size(min = 10, max = 500, message = "Message must be between 10 and 500 characters")
     private String message;
+
+    private String phone;
+    private String from_email;
+    private String subject;
 
 }

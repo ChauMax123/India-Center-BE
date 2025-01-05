@@ -15,8 +15,10 @@ public class Inquiry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     private Long id;
-    private String userName;
-    private Long facilityId;
+    private String fromName;
+    private String phone;
+    private String email;
+    private String subject;
     private String message;
     private String status;
 
